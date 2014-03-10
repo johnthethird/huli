@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="css/page.css" />
+    <!-- USE PRODUCTION BUILD -->
+    <!-- // <script src="js/huli-0.1.min.js"></script> -->
+    <!-- USE DEVELOPMENT BUILD -->
+    <script type="text/javascript" src="js/huli-dev/goog/base.js"></script>
+    <script type="text/javascript" src="js/huli-dev/huli-dev.js"></script>
+    <script type="text/javascript">
+       goog.require('huli.main');
+    </script>
+  </head>
+  <body>
+    <div id="ac-ex0">
+      <div class="ac-container">
+          <div class="section">
+              <label>Query:</label>
+              <span class="combo-box">
+                  <input id="autocomplete" type="text" />
+                  <ul id="autocomplete-menu" class="hidden"></ul>
+              </span>
+          </div>
+          <div class="section">
+              <label>Some field:</label>
+              <input type="text" />
+          </div>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      huli.main.autocomplete({
+        inputId: "autocomplete",
+        url: "http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search=",
+        zurl: "http://localhost:3000/data1.json?q=",
+        transform: function(x){console.log(x); return x[1];}
+      })
+    </script>
+
+  </body>
+</html>
