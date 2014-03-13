@@ -317,13 +317,11 @@
        :completions completions
        :selection-state selection-state})))
 
-(defn foo [x] (nth x 1))
-
 (defn url->query [url transform]
   "Returns a fn that takes a url, retrieves a JSON response, and uses transform
    fn to extract the completion data."
   (fn [query]
-    (go (transform (<! (r/jsonp (str url query)))))))
+    (go (map transform (<! (r/jsonp (str url query)))))))
 
 ;; =============================================================================
 ;; Public Interface
@@ -337,22 +335,4 @@
              (dom/by-id (str input-id "-menu"))
              (url->query url transform ) 750)]
     (go (while true (<! ac)))))
-
-
-;; =============================================================================
-;; Example
-
-(def base-url
-  "http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search=")
-
-
-(defn wikipedia-search [query]
-  (go (nth (<! (r/jsonp (str base-url query))) 1)))
-
-
-; (let [ac (html-autocompleter
-;            (dom/by-id "autocomplete")
-;            (dom/by-id "autocomplete-menu")
-;            wikipedia-search 750)]
-;   (go (while true (<! ac))))
 
