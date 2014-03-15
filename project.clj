@@ -4,6 +4,7 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.clojure/clojurescript "0.0-2173"]
                  [ring "1.2.1"]
+                 [hiccups "0.3.0"]
                  [ring.middleware.jsonp "0.1.4"]
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
                  [org.clojure/core.match "0.2.1"]

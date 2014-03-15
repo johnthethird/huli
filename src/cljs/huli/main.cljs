@@ -4,6 +4,7 @@
     [cljs.core.match.macros :refer [match]])
 
   (:require
+    [huli.ui :as ui]
     [goog.userAgent :as ua]
     [goog.events :as events]
     [goog.events.EventType]
@@ -86,6 +87,7 @@
 
   IUIList
   (-set-items! [list items]
+               (h/frak items)
     (->> (for [item items] (str "<li>" item "</li>"))
       (apply str)
       (dom/set-html! list)))
@@ -326,13 +328,43 @@
 ;; =============================================================================
 ;; Public Interface
 
+(def suggestions-obj
+  [
+    {:title "How do I", :data {:id 34, :type "Post"}}
+    {:title "What is", :data {:id 35, :type "Post"}}
+  ]
+)
+
+
+(def suggestions-flat1 ["post 11" "post 2" "post 3"])
+(def suggestions-flat2 ["post 4" "post 5" "post 6"])
+(def datasets-1
+  [
+    {
+      :source-data suggestions-flat1
+      :header "<li class='huli-header'>HEADER</li>"
+      :footer "<li class='huli-footer'>FOOT</li>"
+      :empty "<li>woot</li>"
+    }
+    {
+      :source-data suggestions-flat2
+    }
+    {
+      :source-data suggestions-obj
+    }
+  ]
+)
+
 (defn ^:export autocomplete [js-opts]
   (let [input-id (.-inputId js-opts)
         url (.-url js-opts)
         transform (or (.-transform js-opts) #(or % ""))
+        menu-el (dom/insert-sibling (dom/html (ui/show-menu datasets-1)) (dom/by-id input-id))
         ac (html-autocompleter
              (dom/by-id input-id)
-             (dom/by-id (str input-id "-menu"))
+             menu-el
              (url->query url transform ) 750)]
+
+
     (go (while true (<! ac)))))
 

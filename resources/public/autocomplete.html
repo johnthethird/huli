@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <script type='text/javascript' id='lt_ws' src='http://localhost:49633/socket.io/lighttable/ws.js'></script>
     <link rel="stylesheet" href="css/page.css" />
     <!-- USE PRODUCTION BUILD -->
     <!-- // <script src="js/huli-0.1.min.js"></script> -->
@@ -18,21 +19,18 @@
               <label>Query Wikipedia:</label>
               <span class="combo-box">
                   <input id="wikipedia" type="text" />
-                  <ul id="wikipedia-menu" class="hidden"></ul>
               </span>
           </div>
           <div class="section">
               <label>Query States:</label>
               <span class="combo-box">
                   <input id="states" type="text" />
-                  <ul id="states-menu" class="hidden"></ul>
               </span>
           </div>
           <div class="section">
               <label>Query States (flat):</label>
               <span class="combo-box">
                   <input id="states-flat" type="text" />
-                  <ul id="states-flat-menu" class="hidden"></ul>
               </span>
           </div>
       </div>
@@ -45,16 +43,20 @@
         transform: function(x){return x[1];}
       })
 
+      // API returns [["AL", Alabama"], ["AK", Alaska"], ...]
+      // Pass in a transform function to determine what to display
       huli.main.autocomplete({
         inputId: "states",
         url: "http://localhost:3000/states.json?q=",
         transform: function(x){return x[1];}
       })
 
+      // API returns ["Alabama", "Alaska", ...]
+      // Doesnt need a transform, since the default transform handles this case
       huli.main.autocomplete({
         inputId: "states-flat",
         url: "http://localhost:3000/states-flat.json?q=",
-        ztransform: function(x){return x[1];}
+        transform: function(x){return x[1];}
       })
     </script>
 

@@ -7,6 +7,11 @@ goog.require('goog.dom');
 goog.require('goog.dom');
 goog.require('goog.style');
 goog.require('goog.style');
+/**
+* Create a dom element from an html string.
+*/
+utils.dom.html = (function html(s){return goog.dom.htmlToDocumentFragment(s);
+});
 utils.dom.by_id = (function by_id(id){return document.getElementById(id);
 });
 utils.dom.set_html_BANG_ = (function set_html_BANG_(el,s){return el.innerHTML = s;
@@ -18,6 +23,9 @@ utils.dom.set_class_BANG_ = (function set_class_BANG_(el,name){return goog.dom.c
 utils.dom.add_class_BANG_ = (function add_class_BANG_(el,name){return goog.dom.classes.add(el,name);
 });
 utils.dom.remove_class_BANG_ = (function remove_class_BANG_(el,name){return goog.dom.classes.remove(el,name);
+});
+utils.dom.insert_sibling = (function insert_sibling(el,target){goog.dom.insertSiblingAfter(el,target);
+return goog.dom.getNextElementSibling(target);
 });
 utils.dom.tag_match = (function tag_match(tag){return (function (el){var temp__4092__auto__ = el.tagName;if(cljs.core.truth_(temp__4092__auto__))
 {var tag_name = temp__4092__auto__;return cljs.core._EQ_.call(null,tag,tag_name.toLowerCase());

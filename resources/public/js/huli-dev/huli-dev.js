@@ -10,6 +10,8 @@ goog.addDependency("../cljs/core/async/impl/timers.js", ['cljs.core.async.impl.t
 goog.addDependency("../cljs/core/async.js", ['cljs.core.async'], ['cljs.core.async.impl.ioc_helpers', 'cljs.core.async.impl.buffers', 'cljs.core', 'cljs.core.async.impl.channels', 'cljs.core.async.impl.dispatch', 'cljs.core.async.impl.protocols', 'cljs.core.async.impl.timers']);
 goog.addDependency("../utils/dom.js", ['utils.dom'], ['goog.dom.classes', 'cljs.core', 'goog.dom', 'goog.style']);
 goog.addDependency("../utils/reactive.js", ['utils.reactive'], ['utils.helpers', 'cljs.core', 'goog.events.EventType', 'goog.net.Jsonp', 'goog.dom', 'cljs.core.async', 'goog.events', 'goog.Uri', 'utils.dom']);
-goog.addDependency("../cljs/core/match.js", ['cljs.core.match'], ['cljs.core']);
 goog.addDependency("../clojure/string.js", ['clojure.string'], ['cljs.core', 'goog.string', 'goog.string.StringBuffer']);
-goog.addDependency("../huli/main.js", ['huli.main'], ['goog.userAgent', 'utils.helpers', 'cljs.core', 'utils.reactive', 'goog.events.EventType', 'clojure.string', 'cljs.core.match', 'cljs.core.async', 'goog.events', 'utils.dom']);
+goog.addDependency("../hiccups/runtime.js", ['hiccups.runtime'], ['cljs.core', 'clojure.string']);
+goog.addDependency("../cljs/core/match.js", ['cljs.core.match'], ['cljs.core']);
+goog.addDependency("../huli/ui.js", ['huli.ui'], ['goog.userAgent', 'utils.helpers', 'cljs.core', 'utils.reactive', 'goog.events.EventType', 'hiccups.runtime', 'clojure.string', 'goog.events', 'utils.dom']);
+goog.addDependency("../huli/main.js", ['huli.main'], ['goog.userAgent', 'utils.helpers', 'cljs.core', 'utils.reactive', 'goog.events.EventType', 'clojure.string', 'cljs.core.match', 'cljs.core.async', 'goog.events', 'utils.dom', 'huli.ui']);

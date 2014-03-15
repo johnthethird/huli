@@ -19,3 +19,11 @@
     (throw x)
     x))
 
+(defn frak [obj] (.log js/console (clj->js obj)))
+
+(defn fn-or-s [fors & args]
+  "Execute fors with args, or return fors if it is a string"
+  (if (fn? fors)
+    (fors args)
+    (str fors)))
+

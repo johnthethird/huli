@@ -3,6 +3,11 @@
             [goog.dom :as dom]
             [goog.dom.classes :as classes]))
 
+(defn html
+  "Create a dom element from an html string."
+  [s]
+  (dom/htmlToDocumentFragment s))
+
 (defn by-id [id]
   (.getElementById js/document id))
 
@@ -20,6 +25,10 @@
 
 (defn remove-class! [el name]
   (classes/remove el name))
+
+(defn insert-sibling [el target]
+  (dom/insertSiblingAfter el target)
+  (goog.dom/getNextElementSibling target))
 
 (defn tag-match [tag]
   (fn [el]
