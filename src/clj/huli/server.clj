@@ -15,11 +15,16 @@
 
 (def states-flat (into [] (map #(second %) states )))
 
+(def states-obj (into [] (map #(identity {:abr (first %) :name (second %)}) states)))
+
 (defn filter-states [q]
   (filter #(re-matches (re-pattern (str "(?i).*" q ".*")) (nth % 1)) states))
 
 (defn filter-states-flat [q]
   (filter #(re-matches (re-pattern (str "(?i).*" q ".*")) %) states-flat))
+
+(defn filter-states-obj [q]
+  (filter #(re-matches (re-pattern (str "(?i).*" q ".*")) (:name %)) states-obj))
 
 (defn search-states [request filter-fn]
   (-> (json/write-str (filter-fn (get-param request :q)))
@@ -32,6 +37,7 @@
     "/" (response/redirect "/autocomplete.html")
     "/states.json" (search-states request filter-states)
     "/states-flat.json" (search-states request filter-states-flat)
+    "/states-obj.json" (search-states request filter-states-obj)
   ))
 
 (def app

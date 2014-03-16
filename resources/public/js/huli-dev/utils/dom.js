@@ -10,7 +10,7 @@ goog.require('goog.style');
 /**
 * Create a dom element from an html string.
 */
-utils.dom.html = (function html(s){return goog.dom.htmlToDocumentFragment(s);
+utils.dom.html__GT_el = (function html__GT_el(s){return goog.dom.htmlToDocumentFragment(s);
 });
 utils.dom.by_id = (function by_id(id){return document.getElementById(id);
 });

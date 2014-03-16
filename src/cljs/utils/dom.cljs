@@ -3,7 +3,7 @@
             [goog.dom :as dom]
             [goog.dom.classes :as classes]))
 
-(defn html
+(defn html->el
   "Create a dom element from an html string."
   [s]
   (dom/htmlToDocumentFragment s))

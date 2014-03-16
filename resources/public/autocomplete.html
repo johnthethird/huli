@@ -33,30 +33,73 @@
                   <input id="states-flat" type="text" />
               </span>
           </div>
+          <div class="section">
+              <label>Query States (obj):</label>
+              <span class="combo-box">
+                  <input id="states-obj" type="text" />
+              </span>
+          </div>
+          <div class="section">
+              <label>Query States array:</label>
+              <span class="combo-box">
+                  <input id="states-array" type="text" />
+              </span>
+          </div>
+          <div class="section">
+              <label>Query States array with extra data attrs:</label>
+              <span class="combo-box">
+                  <input id="states-array-extra" type="text" />
+              </span>
+          </div>
       </div>
     </div>
 
     <script type="text/javascript">
       huli.main.autocomplete({
         inputId: "wikipedia",
-        url: "http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search=",
-        transform: function(x){return x[1];}
+        sourceUrl: "http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search=",
+        sourceTransform: function(x){return x[1];}
       })
 
       // API returns [["AL", Alabama"], ["AK", Alaska"], ...]
       // Pass in a transform function to determine what to display
       huli.main.autocomplete({
         inputId: "states",
-        url: "http://localhost:3000/states.json?q=",
-        transform: function(x){return x[1];}
+        sourceUrl: "http://localhost:3000/states.json?q=",
+        sourceTransform: function(x){return x;},
+        completionTransform: function(x){return("<a>" + x[1] + "</a>");},
+        displayTransform: function(x){return(x[1])}
       })
 
       // API returns ["Alabama", "Alaska", ...]
       // Doesnt need a transform, since the default transform handles this case
       huli.main.autocomplete({
         inputId: "states-flat",
-        url: "http://localhost:3000/states-flat.json?q=",
-        transform: function(x){return x[1];}
+        sourceUrl: "http://localhost:3000/states-flat.json?q="
+      })
+
+      // API returns [{name: "Alabama", abr: "AL"} {name: "Alaska", abr: "AK"} ... ]
+      huli.main.autocomplete({
+        inputId: "states-obj",
+        sourceUrl: "http://localhost:3000/states-obj.json?q=",
+        sourceTransform: function(x){return x;},
+        completionTransform: function(x){return("<a>" + x.name + "</a>");},
+        displayTransform: function(x){return(x.name)}
+      })
+
+      // API returns ["Alabama", "Alaska", ...]
+      // Doesnt need a transform, since the default transform handles this case
+      huli.main.autocomplete({
+        inputId: "states-array",
+        sourceData: ["cal", "colorado"]
+      })
+
+      // API returns [{name: "California", data: {id: 1, pop: "30m"}}, {name: "Alaska"}, ...
+      huli.main.autocomplete({
+        inputId: "states-array-extra",
+        sourceData: [{name: "California", abr: "CA", data: {id: 1, pop: "30m"}}, {name: "Alaska", abr: "AK", data: {id: 2, pop: "1m"}}],
+        zcompletionTransform: function(x){return("<a>" + x.name + "</a>");},
+        displayTransform: "abr" //function(x){console.log(x);return(x.name)}
       })
     </script>
 

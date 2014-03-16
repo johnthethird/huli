@@ -10,7 +10,7 @@
     [goog.events.EventType]
     [clojure.string :as string]
     [cljs.core.match]
-    [cljs.core.async :refer [>! <! alts! chan sliding-buffer put!]]
+    [cljs.core.async :refer [>! <! alts! chan sliding-buffer put! to-chan]]
     [utils.dom :as dom]
     [utils.helpers :as h]
     [utils.reactive :as r]))
@@ -53,18 +53,21 @@
   (-show! [view]))
 
 (defprotocol ITextField
-  (-set-text! [field txt])
-  (-text [field]))
+  (-set-text! [field txt display-transform opts])
+  (-text [field])
+  (-clear! [field]))
 
 (defprotocol IUIList
-  (-set-items! [list items]))
+  (-set-items! [list items completion-transform opts]))
 
 (extend-type js/HTMLInputElement
   ITextField
-  (-set-text! [field text]
-    (set! (.-value field) text))
+  (-set-text! [field text display-transform opts]
+    (set! (.-value field) (h/getkey-or-compute-val display-transform text)))
   (-text [field]
-    (.-value field)))
+    (.-value field))
+  (-clear! [field]
+    (set! (.-value field) "")))
 
 (extend-type js/HTMLUListElement
   IHighlightable
@@ -85,12 +88,13 @@
   (-show! [list]
     (dom/remove-class! list "hidden"))
 
+  ; use for loop to call completion-transform with 2 args, items and opts, so we can get the display-transform and use it
   IUIList
-  (-set-items! [list items]
-               (h/frak items)
-    (->> (for [item items] (str "<li>" item "</li>"))
-      (apply str)
-      (dom/set-html! list)))
+  (-set-items! [list items completion-transform opts]
+    (->> (map completion-transform items)
+        (map #(str "<li>" % "</li>"))
+        (apply str)
+        (dom/set-html! list)))
 
   ICounted
   (-count [list]
@@ -198,7 +202,7 @@
                     (recur nil (not= v :blur)))
                   (do
                     (-show! menu)
-                    (-set-items! menu v)
+                    (-set-items! menu v (:completion-transform opts) opts)
                     (recur v focused))))
 
               (and items (= sc select))
@@ -210,7 +214,7 @@
                 (-hide! menu)
                 (if (= choice :cancel)
                   (recur nil (not= v :blur))
-                  (do (-set-text! (:input opts) choice)
+                  (do (-set-text! (:input opts) choice (:display-transform opts) opts)
                     (>! out choice)
                     (recur nil focused))))
 
@@ -263,7 +267,7 @@
      (r/listen input :keydown
          (fn [e]
            (when (= (.-keyCode e) ESC)
-             (.log js/console "WOOT"))))
+             (.log js/console "ESC key"))))
      ;; need to handle menu clicks
      (->> (r/cyclic-barrier
             [(menu-item-event input menu :mousedown)
@@ -294,17 +298,17 @@
           (put! out (h/now)))))
     out))
 
-(defn html-autocompleter [input menu completions throttle]
+(defn html-autocompleter [{:keys [input menu throttle-ms] :as dataset} completions]
   (let [selection-state (atom false)
         query-ctrl (chan)
         [filtered removed] (html-input-events input)]
     (when (less-than-ie9?)
       (events/listen menu goog.events.EventType.SELECTSTART
         (fn [e] false)))
-    (-set-text! input "")
+    (-clear! input)
     (autocompleter*
       {:focus (r/always :focus (r/listen input :focus))
-       :query (r/throttle* (r/distinct filtered) throttle (chan) query-ctrl)
+       :query (r/throttle* (r/distinct filtered) throttle-ms (chan) query-ctrl)
        :query-ctrl query-ctrl
        :select (html-menu-events input menu selection-state)
        :cancel (r/fan-in
@@ -317,54 +321,52 @@
        :menu menu
        :menu-proc menu-proc
        :completions completions
+       :completion-transform (:completion-transform dataset)
+       :display-transform (:display-transform dataset)
        :selection-state selection-state})))
 
-(defn url->query [url transform]
-  "Returns a fn that takes a url, retrieves a JSON response, and uses transform
-   fn to extract the completion data."
-  (fn [query]
-    (go (map transform (<! (r/jsonp (str url query)))))))
+(defn completions-from [{:keys [source-url source-data source-transform]}]
+  "Returns a fn that takes query, appends it to url, retrieves a JSON response, and uses transform
+   fn to extract the collection."
+  (if (seq source-data)
+    (fn [query]
+      (to-chan [source-data]))
+    (fn [query]
+      (go (map source-transform (<! (r/jsonp (str source-url query))))))
+   )
+)
 
 ;; =============================================================================
 ;; Public Interface
 
-(def suggestions-obj
-  [
-    {:title "How do I", :data {:id 34, :type "Post"}}
-    {:title "What is", :data {:id 35, :type "Post"}}
-  ]
-)
 
-
-(def suggestions-flat1 ["post 11" "post 2" "post 3"])
-(def suggestions-flat2 ["post 4" "post 5" "post 6"])
-(def datasets-1
-  [
-    {
-      :source-data suggestions-flat1
-      :header "<li class='huli-header'>HEADER</li>"
-      :footer "<li class='huli-footer'>FOOT</li>"
-      :empty "<li>woot</li>"
-    }
-    {
-      :source-data suggestions-flat2
-    }
-    {
-      :source-data suggestions-obj
-    }
-  ]
+(defn js-opts->dataset [js-opts]
+     {
+       :input (dom/by-id (.-inputId js-opts))
+       :menu (dom/insert-sibling (dom/html->el "<ul></ul>") (dom/by-id (.-inputId js-opts)))
+       ; Defaults
+       :name (or (.-name js-opts) (str (rand-int 1000)))
+       :source-url (or (.-sourceUrl js-opts) nil)
+       :source-data (or (.-sourceData js-opts) nil)
+       :source-transform (or (.-sourceTransform js-opts) #(identity %))
+       :header (or (.-header js-opts) nil)
+       :footer (or (.-footer js-opts) nil)
+       :empty (or (.-empty js-opts) ui/show-empty)
+       :throttle-ms (or (.-throttleMs js-opts) 750)
+       ; Each obj in result set convert to a <li>
+       :completion-transform (or (.-completionTransform js-opts) ui/completion-template)
+       :sort-transform nil
+       ; What shows up in input upon selection. can be key or fn
+       :display-transform (or (.-displayTransform js-opts) #(identity %))
+      }
 )
 
 (defn ^:export autocomplete [js-opts]
-  (let [input-id (.-inputId js-opts)
-        url (.-url js-opts)
-        transform (or (.-transform js-opts) #(or % ""))
-        menu-el (dom/insert-sibling (dom/html (ui/show-menu datasets-1)) (dom/by-id input-id))
+  (let [dataset (js-opts->dataset js-opts)
         ac (html-autocompleter
-             (dom/by-id input-id)
-             menu-el
-             (url->query url transform ) 750)]
-
-
-    (go (while true (<! ac)))))
+             dataset
+             (completions-from dataset))]
+    (go (while true (<! ac)))
+  )
+)
 
